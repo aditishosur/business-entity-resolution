@@ -11,3 +11,7 @@ work/
 *.db
 output/
 output-smoke/
+
+# Local validation artifacts
+experiments/validation_full/validation_results.csv
+experiments/validation_smoke/
