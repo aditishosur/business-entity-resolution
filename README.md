@@ -1,6 +1,6 @@
 # Business Entity Resolution
 
-ML Challenge 2026 solution for resolving noisy business records across three independent sources.
+AWS ML Challenge 2026 solution for resolving noisy business records across three independent sources.
 
 ## Project Status
 
