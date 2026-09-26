@@ -1,27 +1,52 @@
 # Business Entity Resolution
 
-This is a local-only, reproducible pipeline for the supplied ML Challenge 2026 data. It uses normalized names and addresses, country-aware blocking, token and edit-similarity features, and a logistic regression matcher trained from the supplied training ground truth. It performs no external data lookup.
+ML Challenge 2026 solution for resolving noisy business records across three independent sources.
 
-## Run
+## Project Status
 
-From the `student_resource` directory:
+The project contains:
 
-```bash
-python -m pip install -r code/business_entity_resolution/requirements.txt
-python code/business_entity_resolution/src/solve.py \
-  --data-dir dataset \
-  --output-dir output
-```
+- A baseline in-memory solver.
+- A memory-safe SQLite-backed streaming solver.
+- Country-aware candidate generation.
+- Name and address normalization.
+- Similarity-based matching.
+- Singleton handling.
+- Output-format validation instructions.
+- Reproducible PowerShell commands.
 
-The default training sample is 50,000 Source 1 records. Increase `--train-sample` when more memory and time are available. The two required files are written to `output/`.
+The streaming solver should be used for the complete dataset because the raw challenge data contains millions of records.
 
-Validate them with:
+## Problem
 
-```bash
-python utils/validate_submission.py \
-  --matching output/matching_results.tsv \
-  --candidate output/candidate_pairs.tsv \
-  --test-dir dataset/test
-```
+For every Source 1 business, identify all matching records from Source 2 and Source 3.
 
-The pipeline treats country as an arbitrary string label, so unseen test countries remain eligible for matching. Its blocking keys are full normalized name, full normalized address, postal code, and rare name/address tokens within country. Candidate lists are exactly the records passed to the final scorer.
+The data contains:
+
+- No shared business identifier.
+- Typos and punctuation differences.
+- Abbreviations and legal suffixes.
+- Address variations.
+- Missing address components.
+- Transliteration differences.
+- Multiple possible matches.
+- Singleton Source 1 records with no matches.
+- An unseen country in the test data, including France.
+
+The evaluation metric is macro `F_0.5`, which penalizes false positives more heavily than false negatives.
+
+## Repository Structure
+
+```text
+business-entity-resolution/
+├── .gitignore
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── src/
+│   ├── solve.py
+│   └── solve_streaming.py
+├── tests/
+├── docs/
+├── experiments/
+└── output/
