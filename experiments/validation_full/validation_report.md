@@ -24,6 +24,8 @@
 - Singleton accuracy measures whether entities with no true matches receive an empty prediction.
 - Candidate recall measures whether true matches survive candidate generation.
 
+ Candidate recall interpretation: The reported candidate recall of 0.353037 is calculated as a macro average over non-singleton Source 1 entities (entities with at least one ground-truth match). Final recall, in contrast, is averaged across all Source 1 entities, including singleton entities. Therefore, candidate recall and final recall are not directly equivalent, and final recall can be slightly higher than candidate recall.
+
 ## Threshold comparison
 
 | Threshold | Precision | Recall | Macro F0.5 | Singleton Accuracy | Predictions | Candidate Recall |
