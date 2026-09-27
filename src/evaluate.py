@@ -31,6 +31,7 @@ import numpy as np
 import pandas as pd
 
 from src.solve import LogisticMatcher
+from src.matching_features import feature_row
 
 
 COLS = [
@@ -465,134 +466,6 @@ def candidates(
 # ---------------------------------------------------------------------------
 # Features
 # ---------------------------------------------------------------------------
-
-def feature_row(
-    left: pd.Series,
-    right: dict,
-) -> list[float]:
-
-    left_name = token_set(
-        left.name_n
-    )
-
-    right_name = token_set(
-        right["name_n"]
-    )
-
-    left_address = token_set(
-        left.address_n
-    )
-
-    right_address = token_set(
-        right["address_n"]
-    )
-
-    name_union = len(
-        left_name | right_name
-    )
-
-    address_union = len(
-        left_address | right_address
-    )
-
-    name_intersection = len(
-        left_name & right_name
-    )
-
-    address_intersection = len(
-        left_address & right_address
-    )
-
-    name_j = (
-        name_intersection / name_union
-        if name_union
-        else 0.0
-    )
-
-    address_j = (
-        address_intersection / address_union
-        if address_union
-        else 0.0
-    )
-
-    name_containment = (
-        name_intersection
-        / min(
-            len(left_name),
-            len(right_name),
-        )
-        if left_name and right_name
-        else 0.0
-    )
-
-    address_containment = (
-        address_intersection
-        / min(
-            len(left_address),
-            len(right_address),
-        )
-        if left_address and right_address
-        else 0.0
-    )
-
-    from difflib import SequenceMatcher
-
-    name_c = (
-        SequenceMatcher(
-            None,
-            left.name_n,
-            right["name_n"],
-        ).ratio()
-        if left.name_n
-        and right["name_n"]
-        else 0.0
-    )
-
-    address_c = (
-        SequenceMatcher(
-            None,
-            left.address_n,
-            right["address_n"],
-        ).ratio()
-        if left.address_n
-        and right["address_n"]
-        else 0.0
-    )
-
-    return [
-        float(
-            bool(
-                left.name_n
-                and left.name_n
-                == right["name_n"]
-            )
-        ),
-        float(
-            bool(
-                left.address_n
-                and left.address_n
-                == right["address_n"]
-            )
-        ),
-        float(
-            bool(
-                left.postal_n
-                and left.postal_n
-                == right["postal_n"]
-            )
-        ),
-        name_j,
-        address_j,
-        name_containment,
-        address_containment,
-        name_c,
-        address_c,
-        float(
-            left.country_n
-            == right["country_n"]
-        ),
-    ]
-
 
 # ---------------------------------------------------------------------------
 # Model training
@@ -1115,6 +988,8 @@ def write_validation_results(
                     ",".join(sorted(prediction)),
                     len(candidate_set),
                     ",".join(sorted(candidate_set)),
+                    candidate_true_match_count,
+                    candidate_recall,
                     precision,
                     recall,
                     f05,

@@ -14,13 +14,13 @@ import sqlite3
 import time
 import unicodedata
 from ctypes import wintypes
-from difflib import SequenceMatcher
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from solve import LogisticMatcher
+from src.solve import LogisticMatcher
+from src.matching_features import feature_row
 
 
 TOKEN_RE = re.compile(r"[a-z0-9]+")
@@ -67,10 +67,6 @@ def norm(value: object) -> str:
 def postal(text: str) -> str:
     match = POSTAL_RE.search(text or "")
     return match.group(1) if match else ""
-
-
-def token_set(text: str) -> set[str]:
-    return set(text.split()) if text else set()
 
 
 def normalize_frame(frame: pd.DataFrame) -> pd.DataFrame:
@@ -169,26 +165,6 @@ def candidates(connection: sqlite3.Connection, row: dict) -> list[dict]:
     ).fetchall()
     return [{"row_id": item[0], "entity_id": item[1], "name_n": item[2], "address_n": item[3],
              "country_n": item[4], "postal_n": item[5]} for item in rows]
-
-
-def feature_row(left: dict, right: dict) -> list[float]:
-    left_name, right_name = token_set(left["name_n"]), token_set(right["name_n"])
-    left_address, right_address = token_set(left["address_n"]), token_set(right["address_n"])
-    name_union = len(left_name | right_name)
-    address_union = len(left_address | right_address)
-    name_intersection = len(left_name & right_name)
-    address_intersection = len(left_address & right_address)
-    name_j = name_intersection / name_union if name_union else 0.0
-    address_j = address_intersection / address_union if address_union else 0.0
-    name_containment = name_intersection / min(len(left_name), len(right_name)) if left_name and right_name else 0.0
-    address_containment = address_intersection / min(len(left_address), len(right_address)) if left_address and right_address else 0.0
-    name_c = SequenceMatcher(None, left["name_n"], right["name_n"]).ratio() if left["name_n"] and right["name_n"] else 0.0
-    address_c = SequenceMatcher(None, left["address_n"], right["address_n"]).ratio() if left["address_n"] and right["address_n"] else 0.0
-    return [float(bool(left["name_n"] and left["name_n"] == right["name_n"])),
-            float(bool(left["address_n"] and left["address_n"] == right["address_n"])),
-            float(bool(left["postal_n"] and left["postal_n"] == right["postal_n"])),
-            name_j, address_j, name_containment, address_containment, name_c, address_c,
-            float(left["country_n"] == right["country_n"])]
 
 
 def ground_truth(path: Path, ids: set[str]) -> dict[str, set[str]]:

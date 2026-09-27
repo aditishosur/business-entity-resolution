@@ -1,0 +1,4 @@
+model,threshold,precision,recall,macro_f05,candidate_recall,singleton_accuracy,prediction_count,runtime_seconds,status
+existing_logistic,,,,,,,,,not run: supplied challenge TSVs are absent from this checkout
+improved_logistic,,,,,,,,,not run: supplied challenge TSVs are absent from this checkout
+precision_rule_baseline,,,,,,,,,not run: supplied challenge TSVs are absent from this checkout

@@ -10,11 +10,12 @@ import csv
 import re
 import unicodedata
 from collections import defaultdict
-from difflib import SequenceMatcher
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from src.matching_features import feature_row
 
 
 COLS = ["entity_id", "business_name", "business_address", "country"]
@@ -98,34 +99,9 @@ class CandidateIndex:
         return sorted(result)
 
 
-def jaccard(a: set[str], b: set[str]) -> float:
-    if not a or not b:
-        return 0.0
-    return len(a & b) / len(a | b)
-
-
-def containment(a: set[str], b: set[str]) -> float:
-    if not a or not b:
-        return 0.0
-    return len(a & b) / min(len(a), len(b))
-
-
-def feature_row(a: pd.Series, b: pd.Series) -> list[float]:
-    name_j = jaccard(a.name_t, b.name_t)
-    addr_j = jaccard(a.address_t, b.address_t)
-    name_c = SequenceMatcher(None, a.name_n, b.name_n).ratio() if a.name_n and b.name_n else 0.0
-    addr_c = SequenceMatcher(None, a.address_n, b.address_n).ratio() if a.address_n and b.address_n else 0.0
-    exact_name = float(bool(a.name_n and a.name_n == b.name_n))
-    exact_addr = float(bool(a.address_n and a.address_n == b.address_n))
-    same_postal = float(bool(a.postal_n and a.postal_n == b.postal_n))
-    return [exact_name, exact_addr, same_postal, name_j, addr_j,
-            containment(a.name_t, b.name_t), containment(a.address_t, b.address_t), name_c, addr_c,
-            float(a.country_n == b.country_n)]
-
-
 def pair_features(left: pd.DataFrame, right: pd.DataFrame, pairs: list[tuple[int, int]]) -> np.ndarray:
     values = [feature_row(left.iloc[i], right.iloc[j]) for i, j in pairs]
-    return np.asarray(values, dtype=np.float32) if values else np.empty((0, 10), dtype=np.float32)
+    return np.asarray(values, dtype=np.float32) if values else np.empty((0, 15), dtype=np.float32)
 
 
 class LogisticMatcher:
